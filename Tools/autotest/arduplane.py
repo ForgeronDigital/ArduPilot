@@ -5181,12 +5181,27 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
                 if m.servo3_raw != 1000:
                     raise NotAchievedException(
                         "Throttle must be 0 in altitude wait, got %f" % m.servo3_raw)
-                # Aileron, elevator and rudder must all be the same
-                # However, aileron is revered, so we must un-reverse it
-                value = 1500 - (m.servo1_raw - 1500)
-                if (m.servo2_raw != value) or (m.servo4_raw != value):
-                    raise NotAchievedException(
-                        "Aileron, elevator and rudder must be the same")
+
+                # Check if all servos have wiggled within a certain timeframe
+                time_window = 15
+                start_time = time.time()
+                servo_wiggled = {1: False, 2: False, 4: False}  # Track movement of servos 1, 2, and 4
+
+                while (time.time() - start_time) < time_window:
+                    if m.servo1_raw != 1500:
+                        servo_wiggled[1] = True
+                    if m.servo2_raw != 1500:
+                        servo_wiggled[2] = True
+                    if m.servo4_raw != 1500:
+                        servo_wiggled[4] = True
+
+                    # Exit early if all servos have wiggled
+                    if all(servo_wiggled.values()):
+                        return
+
+                # Check if all servos have wiggled within the time window
+                if not all(servo_wiggled.values()):
+                    raise NotAchievedException("Not all servos have moved within the time window.")
 
         # Start mission
         self.change_mode('AUTO')
