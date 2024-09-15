@@ -132,6 +132,9 @@ public:
     virtual bool allows_flip() const { return false; }
     virtual bool crash_check_enabled() const { return true; }
 
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    virtual bool allows_GCS_arming_with_throttle_high() const { return false; }
+
 #if FRAME_CONFIG == HELI_FRAME
     virtual bool allows_inverted() const { return false; };
 #endif
@@ -510,6 +513,9 @@ public:
 #if FRAME_CONFIG == HELI_FRAME
     bool allows_inverted() const override { return true; };
 #endif
+
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    bool allows_GCS_arming_with_throttle_high() const override { return true; }
 
     // Auto modes
     enum class SubMode : uint8_t {
@@ -1048,6 +1054,9 @@ public:
     bool in_guided_mode() const override { return true; }
 
     bool requires_terrain_failsafe() const override { return true; }
+
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    bool allows_GCS_arming_with_throttle_high() const override { return true; }
 
     // Sets guided's angular target submode: Using a rotation quaternion, angular velocity, and climbrate or thrust (depends on user option)
     // attitude_quat: IF zero: ang_vel (angular velocity) must be provided even if all zeroes
