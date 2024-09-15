@@ -4,6 +4,10 @@
 #include <AP_Math/chirp.h>
 #include <AP_ExternalControl/AP_ExternalControl_config.h> // TODO why is this needed if Copter.h includes this
 
+#if ADVANCED_FAILSAFE
+#include "afs_copter.h"
+#endif
+
 class Parameters;
 class ParametersG2;
 
@@ -134,6 +138,11 @@ public:
 
     // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
     virtual bool allows_GCS_arming_with_throttle_high() const { return false; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    virtual AP_AdvancedFailsafe_Copter::control_mode afs_mode() const { return AP_AdvancedFailsafe_Copter::control_mode::AFS_STABILIZED; }
+#endif
 
 #if FRAME_CONFIG == HELI_FRAME
     virtual bool allows_inverted() const { return false; };
@@ -516,6 +525,11 @@ public:
 
     // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
     bool allows_GCS_arming_with_throttle_high() const override { return true; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
 
     // Auto modes
     enum class SubMode : uint8_t {
@@ -1058,6 +1072,11 @@ public:
     // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
     bool allows_GCS_arming_with_throttle_high() const override { return true; }
 
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
+
     // Sets guided's angular target submode: Using a rotation quaternion, angular velocity, and climbrate or thrust (depends on user option)
     // attitude_quat: IF zero: ang_vel (angular velocity) must be provided even if all zeroes
     //                IF non-zero: attitude_control is performed using both the attitude quaternion and angular velocity
@@ -1242,6 +1261,11 @@ public:
 
     bool is_landing() const override { return true; };
 
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
+
     void do_not_use_GPS();
 
     // returns true if LAND mode is trying to control X/Y position
@@ -1418,6 +1442,11 @@ public:
     bool is_autopilot() const override { return true; }
 
     bool requires_terrain_failsafe() const override { return true; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
 
     // for reporting to GCS
     bool get_wp(Location &loc) const override;
