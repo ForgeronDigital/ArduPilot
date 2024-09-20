@@ -165,6 +165,17 @@ COMPASS IST8310 I2C:ALL_INTERNAL:0x0E false ROTATION_YAW_90
 # enable FAT filesystem support (needs a microSD defined via SDMMC)
 define HAL_OS_FATFS_IO 1
 
+#BATTERY MONITOR ON
+define BATT_MONITOR 4
+
+#Serial Port defaults
+define SERIAL6_PROTOCOL 42  #MSP OSD
+define SERIAL7_PROTOCOL 23  #RC Input
+define SERIAL8_PROTOCOL 16  #ESC Telemetry
+
+#MSP DisplayPort enable
+define OSD_TYPE 5
+
 # setup for OSD
 define OSD_ENABLED 1
 define HAL_OSD_TYPE_DEFAULT 1
