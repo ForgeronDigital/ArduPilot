@@ -4,6 +4,10 @@
 #include <AP_Math/chirp.h>
 #include <AP_ExternalControl/AP_ExternalControl_config.h> // TODO why is this needed if Copter.h includes this
 
+#if ADVANCED_FAILSAFE
+#include "afs_copter.h"
+#endif
+
 class Parameters;
 class ParametersG2;
 
@@ -97,6 +101,8 @@ public:
         AUTO_RTL =     27,  // Auto RTL, this is not a true mode, AUTO will report as this mode if entered to perform a DO_LAND_START Landing sequence
         TURTLE =       28,  // Flip over after crash
 
+        // Mode numbers after 100 are used for custom guided modes.
+
         // Mode number 127 reserved for the "drone show mode" in the Skybrush
         // fork at https://github.com/skybrush-io/ardupilot
     };
@@ -129,6 +135,14 @@ public:
     virtual bool allows_autotune() const { return false; }
     virtual bool allows_flip() const { return false; }
     virtual bool crash_check_enabled() const { return true; }
+
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    virtual bool allows_GCS_arming_with_throttle_high() const { return false; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    virtual AP_AdvancedFailsafe_Copter::control_mode afs_mode() const { return AP_AdvancedFailsafe_Copter::control_mode::AFS_STABILIZED; }
+#endif
 
 #if FRAME_CONFIG == HELI_FRAME
     virtual bool allows_inverted() const { return false; };
@@ -507,6 +521,14 @@ public:
     bool in_guided_mode() const override { return _mode == SubMode::NAVGUIDED || _mode == SubMode::NAV_SCRIPT_TIME; }
 #if FRAME_CONFIG == HELI_FRAME
     bool allows_inverted() const override { return true; };
+#endif
+
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    bool allows_GCS_arming_with_throttle_high() const override { return true; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
 #endif
 
     // Auto modes
@@ -1047,6 +1069,14 @@ public:
 
     bool requires_terrain_failsafe() const override { return true; }
 
+    // Return true if the throttle high arming check can be skipped when arming from GCS or Scripting
+    bool allows_GCS_arming_with_throttle_high() const override { return true; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
+
     // Sets guided's angular target submode: Using a rotation quaternion, angular velocity, and climbrate or thrust (depends on user option)
     // attitude_quat: IF zero: ang_vel (angular velocity) must be provided even if all zeroes
     //                IF non-zero: attitude_control is performed using both the attitude quaternion and angular velocity
@@ -1164,14 +1194,31 @@ private:
     void set_yaw_state(bool use_yaw, float yaw_cd, bool use_yaw_rate, float yaw_rate_cds, bool relative_angle);
 
     // controls which controller is run (pos or vel):
-    SubMode guided_mode = SubMode::TakeOff;
-    bool send_notification;     // used to send one time notification to ground station
-    bool takeoff_complete;      // true once takeoff has completed (used to trigger retracting of landing gear)
+    static SubMode guided_mode;
+    static bool send_notification;     // used to send one time notification to ground station
+    static bool takeoff_complete;      // true once takeoff has completed (used to trigger retracting of landing gear)
 
     // guided mode is paused or not
-    bool _paused;
+    static bool _paused;
 };
 
+// Mode which behaves as guided with custom mode number and name
+class ModeGuidedCustom : public ModeGuided {
+public:
+    // constructor registers custom number and names
+    ModeGuidedCustom(const Number _number, const char* _full_name, const char* _short_name);
+
+    Number mode_number() const override { return number; }
+
+protected:
+    const char *name() const override { return full_name; }
+    const char *name4() const override { return short_name; }
+
+private:
+    const Number number;
+    const char* full_name;
+    const char* short_name;
+};
 
 class ModeGuidedNoGPS : public ModeGuided {
 
@@ -1213,6 +1260,11 @@ public:
     bool is_autopilot() const override { return true; }
 
     bool is_landing() const override { return true; };
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
 
     void do_not_use_GPS();
 
@@ -1390,6 +1442,11 @@ public:
     bool is_autopilot() const override { return true; }
 
     bool requires_terrain_failsafe() const override { return true; }
+
+#if ADVANCED_FAILSAFE
+    // Return the type of this mode for use by advanced failsafe
+    AP_AdvancedFailsafe_Copter::control_mode afs_mode() const override { return AP_AdvancedFailsafe_Copter::control_mode::AFS_AUTO; }
+#endif
 
     // for reporting to GCS
     bool get_wp(Location &loc) const override;

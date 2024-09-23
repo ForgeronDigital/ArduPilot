@@ -32,6 +32,14 @@ struct Guided_Limit {
     Vector3f start_pos; // start position as a distance from home in cm.  used for checking horiz_max limit
 } guided_limit;
 
+// controls which controller is run (pos or vel):
+ModeGuided::SubMode ModeGuided::guided_mode = SubMode::TakeOff;
+bool ModeGuided::send_notification;     // used to send one time notification to ground station
+bool ModeGuided::takeoff_complete;      // true once takeoff has completed (used to trigger retracting of landing gear)
+
+// guided mode is paused or not
+bool ModeGuided::_paused;
+
 // init - initialise guided controller
 bool ModeGuided::init(bool ignore_checks)
 {
@@ -652,6 +660,11 @@ void ModeGuided::set_angle(const Quaternion &attitude_quat, const Vector3f &ang_
     // check we are in velocity control mode
     if (guided_mode != SubMode::Angle) {
         angle_control_start();
+
+    } else if (!use_thrust && guided_angle_state.use_thrust) {
+        // Already angle control but changing from throttle to climb rate
+        pos_control->init_z_controller();
+
     }
 
     guided_angle_state.attitude_quat = attitude_quat;
