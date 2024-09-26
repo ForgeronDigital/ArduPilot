@@ -1490,7 +1490,12 @@ bool AP_GPS::all_consistent(float &distance) const
     }
 
     // calculate distance
-    distance = state[0].location.get_distance_NED(state[1].location).length();
+    if (state[0].have_altitude && state[1].have_altitude) {
+        distance = state[0].location.get_distance_NED(state[1].location).length();
+    } else {
+        distance = state[0].location.get_distance_NE(state[1].location).length();
+    }
+
     // success if distance is within 50m
     return (distance < 50);
 }

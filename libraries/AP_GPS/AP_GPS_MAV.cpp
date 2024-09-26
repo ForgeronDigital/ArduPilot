@@ -71,6 +71,8 @@ void AP_GPS_MAV::handle_msg(const mavlink_message_t &msg)
             loc.lng = packet.lon;
             if (have_alt) {
                 loc.alt = packet.alt * 100; // convert to centimeters
+            } else {
+                state.have_altitude = false;
             }
             state.location = loc;
 
